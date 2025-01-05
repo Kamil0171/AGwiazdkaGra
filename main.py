@@ -4,7 +4,8 @@ import sys
 
 GRID_SIZE = 20
 CELL_SIZE = 40
-SCREEN_SIZE = GRID_SIZE * CELL_SIZE
+HEADER_HEIGHT = 60
+SCREEN_SIZE = (GRID_SIZE * CELL_SIZE, GRID_SIZE * CELL_SIZE + HEADER_HEIGHT)
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -17,7 +18,7 @@ START = (19, 0)
 END = (0, 19)
 
 pygame.init()
-screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
+screen = pygame.display.set_mode(SCREEN_SIZE)
 
 start_img = pygame.image.load("start.jpg")
 end_img = pygame.image.load("koniec.jpg")
@@ -110,42 +111,39 @@ def generate_random_grid(obstacle_chance=0.3):
     return grid
 
 
-def draw_grid(grid, start=None, end=None):
+def draw_grid(grid, start=None, end=None, path=None):
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
             color = WHITE
             if grid[row][col] == 5:
                 color = BLACK
-            pygame.draw.rect(screen, color, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE))
-            pygame.draw.rect(screen, GRAY, (col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE), 1)
+            if path and (row, col) in path:
+                color = RED  # Highlight the optimal path in red
+            pygame.draw.rect(screen, color, (col * CELL_SIZE, row * CELL_SIZE + HEADER_HEIGHT, CELL_SIZE, CELL_SIZE))
+            pygame.draw.rect(screen, GRAY, (col * CELL_SIZE, row * CELL_SIZE + HEADER_HEIGHT, CELL_SIZE, CELL_SIZE), 1)
 
     if start != (19, 0):
-        screen.blit(start_img, (start[1] * CELL_SIZE, start[0] * CELL_SIZE))
-    if end != (0, 19):  # Ensures the end point is only drawn after selection
-        screen.blit(end_img, (end[1] * CELL_SIZE, end[0] * CELL_SIZE))
+        screen.blit(start_img, (start[1] * CELL_SIZE, start[0] * CELL_SIZE + HEADER_HEIGHT))
+    if end != (0, 19):
+        screen.blit(end_img, (end[1] * CELL_SIZE, end[0] * CELL_SIZE + HEADER_HEIGHT))
 
 
-def animate_path(path):
-    for pos in path[1:-1]:
-        screen.fill(WHITE)
-        draw_grid(grid, START, END)
-        screen.blit(ludzik_img, (pos[1] * CELL_SIZE, pos[0] * CELL_SIZE))
-        pygame.display.flip()
-        pygame.time.delay(300)
+def draw_text(text, position, font_size=20, color=BLACK):
+    font = pygame.font.SysFont("comicsans", font_size, bold=True)
+    label = font.render(text, True, color)
+    screen.blit(label, position)
 
-    screen.fill(WHITE)
-    draw_grid(grid, START, END)
-    for previous_pos in path[1:-1]:
-        pygame.draw.rect(screen, GREEN, (previous_pos[1] * CELL_SIZE, previous_pos[0] * CELL_SIZE, CELL_SIZE, CELL_SIZE))
-    pygame.display.flip()
+
+def is_valid_position(start, end):
+    return abs(start[0] - end[0]) >= 3 or abs(start[1] - end[1]) >= 3
 
 
 def main_menu():
-    menu_screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
+    menu_screen = pygame.display.set_mode(SCREEN_SIZE)
     pygame.display.set_caption("A* gra")
 
-    button_play_rect = button_play.get_rect(center=(SCREEN_SIZE // 3, SCREEN_SIZE // 2))
-    button_exit_rect = button_exit.get_rect(center=(2 * SCREEN_SIZE // 3, SCREEN_SIZE // 2))
+    button_play_rect = button_play.get_rect(center=(SCREEN_SIZE[0] // 3, SCREEN_SIZE[1] // 2))
+    button_exit_rect = button_exit.get_rect(center=(2 * SCREEN_SIZE[0] // 3, SCREEN_SIZE[1] // 2))
 
     font_title = pygame.font.SysFont("comicsans", 50, bold=True)
     font_menu = pygame.font.SysFont("comicsans", 30, bold=True)
@@ -156,11 +154,11 @@ def main_menu():
     play_text = font_menu.render("Graj", True, BLACK)
     exit_text = font_menu.render("Wyjdz", True, BLACK)
 
-    title_rect = title_text.get_rect(center=(SCREEN_SIZE // 2, 100))
-    menu_rect = menu_text.get_rect(center=(SCREEN_SIZE // 2, 200))
+    title_rect = title_text.get_rect(center=(SCREEN_SIZE[0] // 2, 100))
+    menu_rect = menu_text.get_rect(center=(SCREEN_SIZE[0] // 2, 200))
 
-    play_text_rect = play_text.get_rect(center=(SCREEN_SIZE // 3, SCREEN_SIZE // 2 + 60))
-    exit_text_rect = exit_text.get_rect(center=(2 * SCREEN_SIZE // 3, SCREEN_SIZE // 2 + 60))
+    play_text_rect = play_text.get_rect(center=(SCREEN_SIZE[0] // 3, SCREEN_SIZE[1] // 2 + 60))
+    exit_text_rect = exit_text.get_rect(center=(2 * SCREEN_SIZE[0] // 3, SCREEN_SIZE[1] // 2 + 60))
 
     while True:
         menu_screen.fill(WHITE)
@@ -195,10 +193,28 @@ def main():
 
     selecting_start = True
     selecting_end = False
+    path = []
+
+    optimal_path = None
+    remaining_steps = 0
+
+    show_error_message = False
 
     while True:
         screen.fill(WHITE)
-        draw_grid(grid, START, END)
+        draw_grid(grid, START, END, path)
+
+        text = f"Pozostało {remaining_steps} kroków"
+        font = pygame.font.SysFont("comicsans", 20, bold=True)
+        text_width = font.size(text)[0]
+
+        text_position = ((SCREEN_SIZE[0] - text_width) // 2, 20)
+
+        draw_text(text, text_position, font_size=20, color=BLACK)
+
+        if show_error_message:
+            draw_text("Punkty startowy i końcowy muszą być oddzielone o co najmniej 3 komórki",
+                      (20, 50), font_size=15, color=RED)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -206,24 +222,42 @@ def main():
                 sys.exit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                row, col = event.pos[1] // CELL_SIZE, event.pos[0] // CELL_SIZE
-                if grid[row][col] != 5:
+                row, col = (event.pos[1] - HEADER_HEIGHT) // CELL_SIZE, event.pos[0] // CELL_SIZE
+                if 0 <= row < GRID_SIZE and 0 <= col < GRID_SIZE and grid[row][col] != 5:
                     if selecting_start:
                         START = (row, col)
                         selecting_start = False
                         selecting_end = True
                     elif selecting_end:
                         END = (row, col)
-                        selecting_end = False
 
-        if not selecting_start and not selecting_end:
-            nodes_dict, console_grid = calculate_all_f_values(grid)
-            path = astar_algorithm(grid, START, END, nodes_dict, console_grid)
-            if path:
-                animate_path(path)
-            else:
-                print("\nNie znaleziono ścieżki")
-            break
+                        if not is_valid_position(START, END):
+                            show_error_message = True
+                        else:
+                            selecting_end = False
+                            show_error_message = False
+                            optimal_path = astar_algorithm(grid, START, END, nodes_dict, console_grid)
+                            remaining_steps = len(optimal_path) - 1 if optimal_path else 0
+                    else:
+                        if (row, col) not in path and remaining_steps > 0:
+                            path.append((row, col))
+                            remaining_steps -= 1
+
+                    if path and path[-1] == END:
+                        if path == optimal_path:
+                            draw_text("Path found!", (SCREEN_SIZE[0] // 2 - 100, SCREEN_SIZE[1] // 2))
+                        else:
+                            draw_text("Incorrect path!", (SCREEN_SIZE[0] // 2 - 120, SCREEN_SIZE[1] // 2))
+
+                    if optimal_path:
+                        draw_grid(grid, START, END, optimal_path)
+
+                        for step in optimal_path:
+                            screen.fill(WHITE)
+                            draw_grid(grid, START, END, optimal_path)
+                            screen.blit(ludzik_img, (step[1] * CELL_SIZE, step[0] * CELL_SIZE + HEADER_HEIGHT))
+                            pygame.display.flip()
+                            pygame.time.delay(300)
 
         pygame.display.flip()
 
