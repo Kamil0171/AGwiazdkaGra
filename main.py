@@ -24,25 +24,30 @@ screen = pygame.display.set_mode(SCREEN_SIZE)
 pygame.display.set_caption("A* Gra")
 
 try:
-    start_img    = pygame.image.load("start.jpg")
-    end_img      = pygame.image.load("koniec.jpg")
-    ludzik_img   = pygame.image.load("ludzik.jpg")
-    button_play  = pygame.image.load("graj.png")
+    start_img         = pygame.image.load("start.jpg")
+    end_img           = pygame.image.load("koniec.jpg")
+    ludzik_img        = pygame.image.load("ludzik.jpg")
+    button_play       = pygame.image.load("graj.png")
     button_exit_orig  = pygame.image.load("wyjdz.png")
-    button_check = pygame.image.load("check.jpg")
-    button_restart = pygame.image.load("restart.jpg")
-    background_img = pygame.image.load("tlo.jpg")
+    button_check      = pygame.image.load("check.jpg")
+    button_restart    = pygame.image.load("restart.jpg")
+    background_img    = pygame.image.load("tlo.jpg")
 except Exception as e:
     print("Błąd ładowania obrazków:", e)
     sys.exit()
 
-start_img    = pygame.transform.scale(start_img, (CELL_SIZE, CELL_SIZE))
-end_img      = pygame.transform.scale(end_img, (CELL_SIZE, CELL_SIZE))
-ludzik_img   = pygame.transform.scale(ludzik_img, (CELL_SIZE, CELL_SIZE))
-button_play  = pygame.transform.scale(button_play, (200, 200))
-button_check = pygame.transform.smoothscale(button_check, (50, 50))
+start_img      = pygame.transform.scale(start_img, (CELL_SIZE, CELL_SIZE))
+end_img        = pygame.transform.scale(end_img, (CELL_SIZE, CELL_SIZE))
+ludzik_img     = pygame.transform.scale(ludzik_img, (CELL_SIZE, CELL_SIZE))
+button_play    = pygame.transform.scale(button_play, (200, 200))
+button_check   = pygame.transform.smoothscale(button_check, (50, 50))
 button_restart = pygame.transform.smoothscale(button_restart, (50, 50))
 background_img = pygame.transform.smoothscale(background_img, SCREEN_SIZE)
+
+# W menu używamy dużego przycisku exit
+button_exit_menu = pygame.transform.scale(button_exit_orig, (200, 200))
+# W grze używamy mniejszego przycisku exit
+button_exit_game = pygame.transform.smoothscale(button_exit_orig, (50, 50))
 
 class Node:
     def __init__(self, position, parent=None):
@@ -53,7 +58,7 @@ class Node:
         self.f = 0
 
 def euclidean_distance(pos1, pos2):
-    return ((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2) ** 0.5
+    return ((pos1[0] - pos2[0])**2 + (pos1[1] - pos2[1])**2)**0.5
 
 def calculate_all_f_values(grid, end):
     nodes_dict = {}
@@ -86,7 +91,7 @@ def astar_algorithm(grid, start, end, nodes_dict, console_grid):
                 current_node = current_node.parent
             path.reverse()
             return path
-        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        for dx, dy in [(-1,0), (1,0), (0,-1), (0,1)]:
             neighbor_pos = (current_node.position[0] + dx, current_node.position[1] + dy)
             if 0 <= neighbor_pos[0] < GRID_SIZE and 0 <= neighbor_pos[1] < GRID_SIZE:
                 if grid[neighbor_pos[0]][neighbor_pos[1]] == 5 or neighbor_pos in closed_set:
@@ -156,11 +161,10 @@ def main_menu():
     menu_screen = pygame.display.set_mode(SCREEN_SIZE)
     pygame.display.set_caption("A* Gra - Menu")
     button_play_rect = button_play.get_rect(center=(SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2))
-    button_exit_menu = pygame.transform.scale(button_exit_orig, (200, 200))
     button_exit_rect = button_exit_menu.get_rect(center=(2 * SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2))
     font_title = pygame.font.SysFont("comicsans", 50, bold=True)
     font_menu = pygame.font.SysFont("comicsans", 30, bold=True)
-    title_text = font_title.render("A* Gra", True, BLACK)
+    title_text = font_title.render("A* Gra - Menu", True, BLACK)
     menu_text = font_menu.render("Menu", True, BLACK)
     title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, 100))
     menu_rect = menu_text.get_rect(center=(SCREEN_WIDTH // 2, 200))
@@ -192,6 +196,7 @@ user_correct = False
 def main():
     global current_grid, current_start, current_end, user_path, optimal_path, user_correct
     main_menu()
+    pygame.display.set_caption("A* Gra")
     current_grid = generate_random_grid()
     current_start = None
     current_end = None
@@ -204,7 +209,6 @@ def main():
     message = "Wybierz punkt startowy"
     button_check_rect = button_check.get_rect(topleft=(10, 10))
     button_restart_rect = button_restart.get_rect(topleft=(button_check_rect.right + 10, 10))
-    button_exit_game = pygame.transform.smoothscale(button_exit_orig, (50, 50))
     button_exit_top_rect = button_exit_game.get_rect(topright=(SCREEN_WIDTH - 10, 10))
     selecting_start = True
     selecting_end = False
@@ -286,7 +290,7 @@ def main():
                             remaining_steps = len(optimal_path) - 1
                             message = ""
                         else:
-                            message = "Brak ścieżki optymalnej!"
+                            message = "Nie można wyznaczyć ścieżkic!"
                 else:
                     if remaining_steps > 0 and (row, col) not in user_path:
                         user_path.append((row, col))
