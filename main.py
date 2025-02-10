@@ -29,7 +29,7 @@ try:
     ludzik_img   = pygame.image.load("ludzik.jpg")
     button_play  = pygame.image.load("graj.jpg")
     button_exit  = pygame.image.load("wyjdz.jpg")
-    button_check = pygame.image.load("done.jpg")
+    button_check = pygame.image.load("check.jpg")
 except Exception as e:
     print("Błąd ładowania obrazków:", e)
     sys.exit()
@@ -39,7 +39,7 @@ end_img      = pygame.transform.scale(end_img, (CELL_SIZE, CELL_SIZE))
 ludzik_img   = pygame.transform.scale(ludzik_img, (CELL_SIZE, CELL_SIZE))
 button_play  = pygame.transform.scale(button_play, (200, 200))
 button_exit  = pygame.transform.scale(button_exit, (200, 200))
-button_check = pygame.transform.scale(button_check, (100, 50))
+button_check = pygame.transform.smoothscale(button_check, (50, 50))
 
 class Node:
     def __init__(self, position, parent=None):
@@ -72,12 +72,10 @@ def astar_algorithm(grid, start, end, nodes_dict, console_grid):
         return None
     start_node = nodes_dict[start]
     open_list.append(start_node)
-
     while open_list:
         open_list.sort(key=lambda node: node.f)
         current_node = open_list.pop(0)
         closed_set.add(current_node.position)
-
         if current_node.position == end:
             path = []
             while current_node:
@@ -85,7 +83,6 @@ def astar_algorithm(grid, start, end, nodes_dict, console_grid):
                 current_node = current_node.parent
             path.reverse()
             return path
-
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             neighbor_pos = (current_node.position[0] + dx, current_node.position[1] + dy)
             if 0 <= neighbor_pos[0] < GRID_SIZE and 0 <= neighbor_pos[1] < GRID_SIZE:
@@ -163,14 +160,12 @@ def main_menu():
     menu_text = font_menu.render("Menu", True, BLACK)
     title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, 100))
     menu_rect = menu_text.get_rect(center=(SCREEN_WIDTH // 2, 200))
-
     while True:
         menu_screen.fill(WHITE)
         menu_screen.blit(title_text, title_rect)
         menu_screen.blit(menu_text, menu_rect)
         menu_screen.blit(button_play, button_play_rect)
         menu_screen.blit(button_exit, button_exit_rect)
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -193,7 +188,6 @@ user_correct = False
 def main():
     global current_grid, current_start, current_end, user_path, optimal_path, user_correct
     main_menu()
-
     current_grid = generate_random_grid()
     current_start = None
     current_end = None
@@ -204,40 +198,29 @@ def main():
     remaining_steps = 0
     show_error_message = False
     message = "Wybierz punkt startowy"
-
     button_check_rect = button_check.get_rect(topleft=(10, 10))
-
     selecting_start = True
     selecting_end = False
-
     while True:
         screen.fill(WHITE)
         draw_grid(current_grid, current_start, current_end, user_path, optimal_path, user_correct, reveal_optimal)
-
-        if optimal_path:
-            steps_text = f"Pozostało {remaining_steps} kroków"
-            text_width, _ = pygame.font.SysFont("comicsans", 20, bold=True).size(steps_text)
-            text_position = ((SCREEN_WIDTH - text_width) // 2, 20)
-            draw_text(steps_text, text_position, font_size=20, color=BLACK)
-
-        if show_error_message:
-            draw_text("Punkty startowe i końcowe muszą być oddalone o co najmniej 3 komórki",
-                      (20, 50), font_size=15, color=RED)
-
         screen.blit(button_check, button_check_rect)
-
-        if message:
-            draw_text(message, (SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT - 40), font_size=20, color=BLACK)
-
+        if optimal_path is not None:
+            header_text = f"Pozostało {remaining_steps} kroków"
+        else:
+            header_text = message
+        font = pygame.font.SysFont("comicsans", 20, bold=True)
+        label = font.render(header_text, True, BLACK)
+        label_width, label_height = label.get_size()
+        text_position = ((SCREEN_WIDTH - label_width) // 2, (HEADER_HEIGHT - label_height) // 2)
+        screen.blit(label, text_position)
         pygame.display.flip()
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = event.pos
-
                 if button_check_rect.collidepoint(event.pos):
                     if optimal_path:
                         if user_path and current_end and user_path[-1] == current_end and user_path == optimal_path:
@@ -248,7 +231,6 @@ def main():
                             reveal_optimal = True
                             animate_ludzik(optimal_path, reveal_optimal)
                     continue
-
                 if my < HEADER_HEIGHT:
                     continue
                 row = (my - HEADER_HEIGHT) // CELL_SIZE
@@ -257,7 +239,6 @@ def main():
                     continue
                 if current_grid[row][col] == 5:
                     continue
-
                 if selecting_start:
                     current_start = (row, col)
                     user_path = [current_start]
@@ -276,7 +257,7 @@ def main():
                         optimal_path = astar_algorithm(current_grid, current_start, current_end, nodes_dict, console_grid)
                         if optimal_path:
                             remaining_steps = len(optimal_path) - 1
-                            message = f"Masz {remaining_steps} kroków - wybierz trasę!"
+                            message = ""
                         else:
                             message = "Brak ścieżki optymalnej!"
                 else:
