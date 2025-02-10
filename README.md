@@ -3,10 +3,10 @@ Instrukcja gry "A* Gra" – Droga studenta z uczelni do domu *
 Wyobraź sobie, że jesteś studentem, który właśnie kończy zajęcia na uczelni i chce dotrzeć do domu. Twoim zadaniem jest wyznaczenie najkrótszej i najbardziej optymalnej drogi z uczelni do domu. Oto jak to działa: 
 
  
-[1]. Ekran startowy: 
+1) Ekran startowy: 
 Po uruchomieniu pliku gra.exe, otworzy się menu gry. Masz do wybory dwa wyjścia - pierwsze “Graj” (zielony przycisk) oraz drugie “Wyjdź” (czerwony przycisk), aby wyjść z gry. Kliknij “Graj” aby zacząć. 
 
-2. Plansza gry: 
+2) Plansza gry: 
 Gra rozgrywa się na planszy 20x20, podzielonej na kwadratowe pola. 
  • Punkt startowy – uczelnia, od której zaczynasz swoją podróż. 
  • Punkt końcowy - dom, do którego musisz dotrzeć. 
