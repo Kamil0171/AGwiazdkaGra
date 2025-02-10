@@ -1,37 +1,45 @@
-import numpy as np
 import pygame
 import sys
+import numpy as np
 
 GRID_SIZE = 20
 CELL_SIZE = 40
 HEADER_HEIGHT = 60
-SCREEN_SIZE = (GRID_SIZE * CELL_SIZE, GRID_SIZE * CELL_SIZE + HEADER_HEIGHT)
+SCREEN_WIDTH = GRID_SIZE * CELL_SIZE
+SCREEN_HEIGHT = GRID_SIZE * CELL_SIZE + HEADER_HEIGHT
+SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
 
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
+WHITE     = (255, 255, 255)
+BLACK     = (0, 0, 0)
+RED       = (255, 0, 0)
+GREEN     = (0, 255, 0)
 DARK_BLUE = (0, 0, 128)
-GRAY = (200, 200, 200)
+GRAY      = (200, 200, 200)
 
-START = (19, 0)
-END = (0, 19)
+DEFAULT_START = (19, 0)
+DEFAULT_END   = (0, 19)
 
 pygame.init()
 screen = pygame.display.set_mode(SCREEN_SIZE)
+pygame.display.set_caption("A* Gra")
 
-start_img = pygame.image.load("start.jpg")
-end_img = pygame.image.load("koniec.jpg")
-ludzik_img = pygame.image.load("ludzik.jpg")
-button_play = pygame.image.load("graj.jpg")
-button_exit = pygame.image.load("wyjdz.jpg")
+try:
+    start_img    = pygame.image.load("start.jpg")
+    end_img      = pygame.image.load("koniec.jpg")
+    ludzik_img   = pygame.image.load("ludzik.jpg")
+    button_play  = pygame.image.load("graj.jpg")
+    button_exit  = pygame.image.load("wyjdz.jpg")
+    button_check = pygame.image.load("done.jpg")
+except Exception as e:
+    print("Błąd ładowania obrazków:", e)
+    sys.exit()
 
-start_img = pygame.transform.scale(start_img, (CELL_SIZE, CELL_SIZE))
-end_img = pygame.transform.scale(end_img, (CELL_SIZE, CELL_SIZE))
-ludzik_img = pygame.transform.scale(ludzik_img, (CELL_SIZE, CELL_SIZE))
-button_play = pygame.transform.scale(button_play, (200, 100))
-button_exit = pygame.transform.scale(button_exit, (200, 100))
-
+start_img    = pygame.transform.scale(start_img, (CELL_SIZE, CELL_SIZE))
+end_img      = pygame.transform.scale(end_img, (CELL_SIZE, CELL_SIZE))
+ludzik_img   = pygame.transform.scale(ludzik_img, (CELL_SIZE, CELL_SIZE))
+button_play  = pygame.transform.scale(button_play, (200, 200))
+button_exit  = pygame.transform.scale(button_exit, (200, 200))
+button_check = pygame.transform.scale(button_check, (100, 50))
 
 class Node:
     def __init__(self, position, parent=None):
@@ -41,39 +49,34 @@ class Node:
         self.h = 0
         self.f = 0
 
+def euclidean_distance(pos1, pos2):
+    return ((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2) ** 0.5
 
-def euclidean_distance(node1, node2):
-    return ((node1[0] - node2[0]) ** 2 + (node1[1] - node2[1]) ** 2) ** 0.5
-
-
-def calculate_all_f_values(grid):
+def calculate_all_f_values(grid, end):
     nodes_dict = {}
-    end_node = Node(END)
-
     console_grid = np.copy(grid)
-
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
             if grid[row][col] == 5:
                 continue
             node = Node((row, col))
-            node.h = euclidean_distance((row, col), END)
+            node.h = euclidean_distance((row, col), end)
             node.f = node.g + node.h
             nodes_dict[(row, col)] = node
-
     return nodes_dict, console_grid
-
 
 def astar_algorithm(grid, start, end, nodes_dict, console_grid):
     open_list = []
-    closed_list = set()
+    closed_set = set()
+    if start not in nodes_dict or end not in nodes_dict:
+        return None
     start_node = nodes_dict[start]
     open_list.append(start_node)
 
     while open_list:
         open_list.sort(key=lambda node: node.f)
         current_node = open_list.pop(0)
-        closed_list.add(current_node.position)
+        closed_set.add(current_node.position)
 
         if current_node.position == end:
             path = []
@@ -86,79 +89,80 @@ def astar_algorithm(grid, start, end, nodes_dict, console_grid):
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             neighbor_pos = (current_node.position[0] + dx, current_node.position[1] + dy)
             if 0 <= neighbor_pos[0] < GRID_SIZE and 0 <= neighbor_pos[1] < GRID_SIZE:
-                if grid[neighbor_pos] == 5 or neighbor_pos in closed_list:
+                if grid[neighbor_pos[0]][neighbor_pos[1]] == 5 or neighbor_pos in closed_set:
                     continue
-                neighbor_node = nodes_dict[neighbor_pos]
+                neighbor_node = nodes_dict.get(neighbor_pos)
+                if neighbor_node is None:
+                    continue
                 new_g = current_node.g + 1
-
                 if neighbor_node.g == 0 or new_g < neighbor_node.g:
                     neighbor_node.g = new_g
+                    neighbor_node.h = euclidean_distance(neighbor_pos, end)
                     neighbor_node.f = neighbor_node.g + neighbor_node.h
                     neighbor_node.parent = current_node
                     if neighbor_node not in open_list:
                         open_list.append(neighbor_node)
-
     return None
-
 
 def generate_random_grid(obstacle_chance=0.3):
     grid = np.zeros((GRID_SIZE, GRID_SIZE), dtype=int)
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
-            if (row, col) != START and (row, col) != END:
-                if np.random.rand() < obstacle_chance:
-                    grid[row, col] = 5
+            if (row, col) == DEFAULT_START or (row, col) == DEFAULT_END:
+                continue
+            if np.random.rand() < obstacle_chance:
+                grid[row][col] = 5
     return grid
 
-
-def draw_grid(grid, start=None, end=None, path=None):
+def draw_grid(grid, start, end, user_path, optimal_path, user_correct, reveal_optimal=False):
     for row in range(GRID_SIZE):
         for col in range(GRID_SIZE):
-            color = WHITE
+            cell_rect = pygame.Rect(col * CELL_SIZE, row * CELL_SIZE + HEADER_HEIGHT, CELL_SIZE, CELL_SIZE)
             if grid[row][col] == 5:
                 color = BLACK
-            if path and (row, col) in path:
-                color = RED  # Highlight the optimal path in red
-            pygame.draw.rect(screen, color, (col * CELL_SIZE, row * CELL_SIZE + HEADER_HEIGHT, CELL_SIZE, CELL_SIZE))
-            pygame.draw.rect(screen, GRAY, (col * CELL_SIZE, row * CELL_SIZE + HEADER_HEIGHT, CELL_SIZE, CELL_SIZE), 1)
-
-    if start != (19, 0):
+            else:
+                color = WHITE
+            if user_correct and user_path and (row, col) in user_path:
+                color = GREEN
+            elif reveal_optimal and optimal_path and (row, col) in optimal_path:
+                color = RED
+            elif user_path and (row, col) in user_path:
+                color = DARK_BLUE
+            pygame.draw.rect(screen, color, cell_rect)
+            pygame.draw.rect(screen, GRAY, cell_rect, 1)
+    if start:
         screen.blit(start_img, (start[1] * CELL_SIZE, start[0] * CELL_SIZE + HEADER_HEIGHT))
-    if end != (0, 19):
+    if end:
         screen.blit(end_img, (end[1] * CELL_SIZE, end[0] * CELL_SIZE + HEADER_HEIGHT))
-
 
 def draw_text(text, position, font_size=20, color=BLACK):
     font = pygame.font.SysFont("comicsans", font_size, bold=True)
     label = font.render(text, True, color)
     screen.blit(label, position)
 
-
 def is_valid_position(start, end):
     return abs(start[0] - end[0]) >= 3 or abs(start[1] - end[1]) >= 3
 
+def animate_ludzik(path, reveal_optimal):
+    for pos in path:
+        draw_grid(current_grid, current_start, current_end, user_path, optimal_path, user_correct, reveal_optimal)
+        ludzik_x = pos[1] * CELL_SIZE
+        ludzik_y = pos[0] * CELL_SIZE + HEADER_HEIGHT
+        screen.blit(ludzik_img, (ludzik_x, ludzik_y))
+        pygame.display.flip()
+        pygame.time.delay(300)
 
 def main_menu():
     menu_screen = pygame.display.set_mode(SCREEN_SIZE)
-    pygame.display.set_caption("A* gra")
-
-    button_play_rect = button_play.get_rect(center=(SCREEN_SIZE[0] // 3, SCREEN_SIZE[1] // 2))
-    button_exit_rect = button_exit.get_rect(center=(2 * SCREEN_SIZE[0] // 3, SCREEN_SIZE[1] // 2))
-
+    pygame.display.set_caption("A* Gra - Menu")
+    button_play_rect = button_play.get_rect(center=(SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2))
+    button_exit_rect = button_exit.get_rect(center=(2 * SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2))
     font_title = pygame.font.SysFont("comicsans", 50, bold=True)
     font_menu = pygame.font.SysFont("comicsans", 30, bold=True)
-
-    title_text = font_title.render("", True, BLACK)
+    title_text = font_title.render("A* Gra", True, BLACK)
     menu_text = font_menu.render("Menu", True, BLACK)
-
-    play_text = font_menu.render("Graj", True, BLACK)
-    exit_text = font_menu.render("Wyjdz", True, BLACK)
-
-    title_rect = title_text.get_rect(center=(SCREEN_SIZE[0] // 2, 100))
-    menu_rect = menu_text.get_rect(center=(SCREEN_SIZE[0] // 2, 200))
-
-    play_text_rect = play_text.get_rect(center=(SCREEN_SIZE[0] // 3, SCREEN_SIZE[1] // 2 + 60))
-    exit_text_rect = exit_text.get_rect(center=(2 * SCREEN_SIZE[0] // 3, SCREEN_SIZE[1] // 2 + 60))
+    title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, 100))
+    menu_rect = menu_text.get_rect(center=(SCREEN_WIDTH // 2, 200))
 
     while True:
         menu_screen.fill(WHITE)
@@ -166,9 +170,6 @@ def main_menu():
         menu_screen.blit(menu_text, menu_rect)
         menu_screen.blit(button_play, button_play_rect)
         menu_screen.blit(button_exit, button_exit_rect)
-
-        menu_screen.blit(play_text, play_text_rect)
-        menu_screen.blit(exit_text, exit_text_rect)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -180,87 +181,108 @@ def main_menu():
                 elif button_exit_rect.collidepoint(event.pos):
                     pygame.quit()
                     sys.exit()
-
         pygame.display.flip()
 
+current_grid = None
+current_start = None
+current_end = None
+user_path = []
+optimal_path = None
+user_correct = False
 
 def main():
+    global current_grid, current_start, current_end, user_path, optimal_path, user_correct
     main_menu()
 
-    global grid, nodes_dict, START, END
-    grid = generate_random_grid()
-    nodes_dict, console_grid = calculate_all_f_values(grid)
+    current_grid = generate_random_grid()
+    current_start = None
+    current_end = None
+    user_path = []
+    optimal_path = None
+    user_correct = False
+    reveal_optimal = False
+    remaining_steps = 0
+    show_error_message = False
+    message = "Wybierz punkt startowy"
+
+    button_check_rect = button_check.get_rect(topleft=(10, 10))
 
     selecting_start = True
     selecting_end = False
-    path = []
-
-    optimal_path = None
-    remaining_steps = 0
-
-    show_error_message = False
 
     while True:
         screen.fill(WHITE)
-        draw_grid(grid, START, END, path)
+        draw_grid(current_grid, current_start, current_end, user_path, optimal_path, user_correct, reveal_optimal)
 
-        text = f"Pozostało {remaining_steps} kroków"
-        font = pygame.font.SysFont("comicsans", 20, bold=True)
-        text_width = font.size(text)[0]
-
-        text_position = ((SCREEN_SIZE[0] - text_width) // 2, 20)
-
-        draw_text(text, text_position, font_size=20, color=BLACK)
+        if optimal_path:
+            steps_text = f"Pozostało {remaining_steps} kroków"
+            text_width, _ = pygame.font.SysFont("comicsans", 20, bold=True).size(steps_text)
+            text_position = ((SCREEN_WIDTH - text_width) // 2, 20)
+            draw_text(steps_text, text_position, font_size=20, color=BLACK)
 
         if show_error_message:
-            draw_text("Punkty startowy i końcowy muszą być oddzielone o co najmniej 3 komórki",
+            draw_text("Punkty startowe i końcowe muszą być oddalone o co najmniej 3 komórki",
                       (20, 50), font_size=15, color=RED)
+
+        screen.blit(button_check, button_check_rect)
+
+        if message:
+            draw_text(message, (SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT - 40), font_size=20, color=BLACK)
+
+        pygame.display.flip()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-
             if event.type == pygame.MOUSEBUTTONDOWN:
-                row, col = (event.pos[1] - HEADER_HEIGHT) // CELL_SIZE, event.pos[0] // CELL_SIZE
-                if 0 <= row < GRID_SIZE and 0 <= col < GRID_SIZE and grid[row][col] != 5:
-                    if selecting_start:
-                        START = (row, col)
-                        selecting_start = False
-                        selecting_end = True
-                    elif selecting_end:
-                        END = (row, col)
+                mx, my = event.pos
 
-                        if not is_valid_position(START, END):
-                            show_error_message = True
-                        else:
-                            selecting_end = False
-                            show_error_message = False
-                            optimal_path = astar_algorithm(grid, START, END, nodes_dict, console_grid)
-                            remaining_steps = len(optimal_path) - 1 if optimal_path else 0
-                    else:
-                        if (row, col) not in path and remaining_steps > 0:
-                            path.append((row, col))
-                            remaining_steps -= 1
-
-                    if path and path[-1] == END:
-                        if path == optimal_path:
-                            draw_text("Path found!", (SCREEN_SIZE[0] // 2 - 100, SCREEN_SIZE[1] // 2))
-                        else:
-                            draw_text("Incorrect path!", (SCREEN_SIZE[0] // 2 - 120, SCREEN_SIZE[1] // 2))
-
+                if button_check_rect.collidepoint(event.pos):
                     if optimal_path:
-                        draw_grid(grid, START, END, optimal_path)
+                        if user_path and current_end and user_path[-1] == current_end and user_path == optimal_path:
+                            user_correct = True
+                            message = "Znaleziono ścieżkę!"
+                        else:
+                            message = "Niepoprawna ścieżka!"
+                            reveal_optimal = True
+                            animate_ludzik(optimal_path, reveal_optimal)
+                    continue
 
-                        for step in optimal_path:
-                            screen.fill(WHITE)
-                            draw_grid(grid, START, END, optimal_path)
-                            screen.blit(ludzik_img, (step[1] * CELL_SIZE, step[0] * CELL_SIZE + HEADER_HEIGHT))
-                            pygame.display.flip()
-                            pygame.time.delay(300)
+                if my < HEADER_HEIGHT:
+                    continue
+                row = (my - HEADER_HEIGHT) // CELL_SIZE
+                col = mx // CELL_SIZE
+                if row < 0 or row >= GRID_SIZE or col < 0 or col >= GRID_SIZE:
+                    continue
+                if current_grid[row][col] == 5:
+                    continue
 
-        pygame.display.flip()
-
+                if selecting_start:
+                    current_start = (row, col)
+                    user_path = [current_start]
+                    selecting_start = False
+                    selecting_end = True
+                    message = "Wybierz punkt końcowy"
+                elif selecting_end:
+                    current_end = (row, col)
+                    if not is_valid_position(current_start, current_end):
+                        show_error_message = True
+                        message = "Punkty muszą być oddalone o co najmniej 3 komórki"
+                    else:
+                        show_error_message = False
+                        selecting_end = False
+                        nodes_dict, console_grid = calculate_all_f_values(current_grid, current_end)
+                        optimal_path = astar_algorithm(current_grid, current_start, current_end, nodes_dict, console_grid)
+                        if optimal_path:
+                            remaining_steps = len(optimal_path) - 1
+                            message = f"Masz {remaining_steps} kroków - wybierz trasę!"
+                        else:
+                            message = "Brak ścieżki optymalnej!"
+                else:
+                    if remaining_steps > 0 and (row, col) not in user_path:
+                        user_path.append((row, col))
+                        remaining_steps -= 1
 
 if __name__ == "__main__":
     main()
