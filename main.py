@@ -195,7 +195,7 @@ def main_menu():
     # Tytuł menu
     title_text = font_title.render("A* Gra - Menu", True, WHITE)
     title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, 100))
-    menu_text = font_menu.render("Menu", True, WHITE)
+    menu_text = font_menu.render("", True, WHITE)
     menu_rect = menu_text.get_rect(center=(SCREEN_WIDTH // 2, 200))
     while True:
         menu_screen.blit(background_img, (0, 0))
