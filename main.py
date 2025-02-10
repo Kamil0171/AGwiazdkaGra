@@ -1,6 +1,14 @@
-import pygame
+import os
 import sys
+import pygame
 import numpy as np
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
 
 GRID_SIZE = 20
 CELL_SIZE = 40
@@ -24,14 +32,14 @@ screen = pygame.display.set_mode(SCREEN_SIZE)
 pygame.display.set_caption("A* Gra")
 
 try:
-    start_img         = pygame.image.load("start.jpg")
-    end_img           = pygame.image.load("koniec.jpg")
-    ludzik_img        = pygame.image.load("ludzik.jpg")
-    button_play       = pygame.image.load("graj.png")
-    button_exit_orig  = pygame.image.load("wyjdz.png")
-    button_check      = pygame.image.load("check.jpg")
-    button_restart    = pygame.image.load("restart.jpg")
-    background_img    = pygame.image.load("tlo.jpg")
+    start_img         = pygame.image.load(resource_path("start.jpg"))
+    end_img           = pygame.image.load(resource_path("koniec.jpg"))
+    ludzik_img        = pygame.image.load(resource_path("ludzik.jpg"))
+    button_play       = pygame.image.load(resource_path("graj.png"))
+    button_exit_orig  = pygame.image.load(resource_path("wyjdz.png"))
+    button_check      = pygame.image.load(resource_path("check.jpg"))
+    button_restart    = pygame.image.load(resource_path("restart.jpg"))
+    background_img    = pygame.image.load(resource_path("tlo.jpg"))
 except Exception as e:
     print("Błąd ładowania obrazków:", e)
     sys.exit()
@@ -290,7 +298,7 @@ def main():
                             remaining_steps = len(optimal_path) - 1
                             message = ""
                         else:
-                            message = "Nie można wyznaczyć ścieżkic!"
+                            message = "Nie można wyznaczyć ścieżki!"
                 else:
                     if remaining_steps > 0 and (row, col) not in user_path:
                         user_path.append((row, col))
