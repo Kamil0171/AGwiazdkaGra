@@ -27,9 +27,11 @@ try:
     start_img    = pygame.image.load("start.jpg")
     end_img      = pygame.image.load("koniec.jpg")
     ludzik_img   = pygame.image.load("ludzik.jpg")
-    button_play  = pygame.image.load("graj.jpg")
-    button_exit  = pygame.image.load("wyjdz.jpg")
+    button_play  = pygame.image.load("graj.png")
+    button_exit_orig  = pygame.image.load("wyjdz.png")
     button_check = pygame.image.load("check.jpg")
+    button_restart = pygame.image.load("restart.jpg")
+    background_img = pygame.image.load("tlo.jpg")
 except Exception as e:
     print("Błąd ładowania obrazków:", e)
     sys.exit()
@@ -38,8 +40,9 @@ start_img    = pygame.transform.scale(start_img, (CELL_SIZE, CELL_SIZE))
 end_img      = pygame.transform.scale(end_img, (CELL_SIZE, CELL_SIZE))
 ludzik_img   = pygame.transform.scale(ludzik_img, (CELL_SIZE, CELL_SIZE))
 button_play  = pygame.transform.scale(button_play, (200, 200))
-button_exit  = pygame.transform.scale(button_exit, (200, 200))
 button_check = pygame.transform.smoothscale(button_check, (50, 50))
+button_restart = pygame.transform.smoothscale(button_restart, (50, 50))
+background_img = pygame.transform.smoothscale(background_img, SCREEN_SIZE)
 
 class Node:
     def __init__(self, position, parent=None):
@@ -153,7 +156,8 @@ def main_menu():
     menu_screen = pygame.display.set_mode(SCREEN_SIZE)
     pygame.display.set_caption("A* Gra - Menu")
     button_play_rect = button_play.get_rect(center=(SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2))
-    button_exit_rect = button_exit.get_rect(center=(2 * SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2))
+    button_exit_menu = pygame.transform.scale(button_exit_orig, (200, 200))
+    button_exit_rect = button_exit_menu.get_rect(center=(2 * SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2))
     font_title = pygame.font.SysFont("comicsans", 50, bold=True)
     font_menu = pygame.font.SysFont("comicsans", 30, bold=True)
     title_text = font_title.render("A* Gra", True, BLACK)
@@ -161,19 +165,19 @@ def main_menu():
     title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, 100))
     menu_rect = menu_text.get_rect(center=(SCREEN_WIDTH // 2, 200))
     while True:
-        menu_screen.fill(WHITE)
+        menu_screen.blit(background_img, (0, 0))
         menu_screen.blit(title_text, title_rect)
         menu_screen.blit(menu_text, menu_rect)
-        menu_screen.blit(button_play, button_play_rect)
-        menu_screen.blit(button_exit, button_exit_rect)
+        menu_screen.blit(button_play, button_play.get_rect(center=(SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2)))
+        menu_screen.blit(button_exit_menu, button_exit_rect)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if button_play_rect.collidepoint(event.pos):
+                if button_play.get_rect(center=(SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2)).collidepoint(event.pos):
                     return
-                elif button_exit_rect.collidepoint(event.pos):
+                elif button_exit_menu.get_rect(center=(2 * SCREEN_WIDTH // 3, SCREEN_HEIGHT // 2)).collidepoint(event.pos):
                     pygame.quit()
                     sys.exit()
         pygame.display.flip()
@@ -199,12 +203,17 @@ def main():
     show_error_message = False
     message = "Wybierz punkt startowy"
     button_check_rect = button_check.get_rect(topleft=(10, 10))
+    button_restart_rect = button_restart.get_rect(topleft=(button_check_rect.right + 10, 10))
+    button_exit_game = pygame.transform.smoothscale(button_exit_orig, (50, 50))
+    button_exit_top_rect = button_exit_game.get_rect(topright=(SCREEN_WIDTH - 10, 10))
     selecting_start = True
     selecting_end = False
     while True:
         screen.fill(WHITE)
         draw_grid(current_grid, current_start, current_end, user_path, optimal_path, user_correct, reveal_optimal)
         screen.blit(button_check, button_check_rect)
+        screen.blit(button_restart, button_restart_rect)
+        screen.blit(button_exit_game, button_exit_top_rect)
         if optimal_path is not None:
             header_text = f"Pozostało {remaining_steps} kroków"
         else:
@@ -221,11 +230,29 @@ def main():
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mx, my = event.pos
+                if button_exit_top_rect.collidepoint(event.pos):
+                    pygame.quit()
+                    sys.exit()
+                if button_restart_rect.collidepoint(event.pos):
+                    current_grid = generate_random_grid()
+                    current_start = None
+                    current_end = None
+                    user_path = []
+                    optimal_path = None
+                    user_correct = False
+                    reveal_optimal = False
+                    remaining_steps = 0
+                    show_error_message = False
+                    message = "Wybierz punkt startowy"
+                    selecting_start = True
+                    selecting_end = False
+                    continue
                 if button_check_rect.collidepoint(event.pos):
                     if optimal_path:
                         if user_path and current_end and user_path[-1] == current_end and user_path == optimal_path:
                             user_correct = True
                             message = "Znaleziono ścieżkę!"
+                            animate_ludzik(optimal_path, False)
                         else:
                             message = "Niepoprawna ścieżka!"
                             reveal_optimal = True
