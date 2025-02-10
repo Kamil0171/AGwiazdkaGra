@@ -1,32 +1,44 @@
-Instrukcja gry "A* Gra" – Droga studenta z uczelni do domu * 
+# Instrukcja gry "A* Gra" – Droga studenta z uczelni do domu
 
-Wyobraź sobie, że jesteś studentem, który właśnie kończy zajęcia na uczelni i chce dotrzeć do domu. Twoim zadaniem jest wyznaczenie najkrótszej i najbardziej optymalnej drogi z uczelni do domu. Oto jak to działa: 
+Wyobraź sobie, że jesteś studentem, który właśnie kończy zajęcia na uczelni i chce dotrzeć do domu. Twoim zadaniem jest wyznaczenie najkrótszej i najbardziej optymalnej drogi z uczelni do domu. Oto, jak to działa:
 
- 
-1) Ekran startowy: 
-Po uruchomieniu pliku gra.exe, otworzy się menu gry. Masz do wybory dwa wyjścia - pierwsze “Graj” (zielony przycisk) oraz drugie “Wyjdź” (czerwony przycisk), aby wyjść z gry. Kliknij “Graj” aby zacząć. 
+## 1. Ekran startowy
 
-2) Plansza gry: 
-Gra rozgrywa się na planszy 20x20, podzielonej na kwadratowe pola. 
- • Punkt startowy – uczelnia, od której zaczynasz swoją podróż. 
- • Punkt końcowy - dom, do którego musisz dotrzeć. 
- • Przeszkody (czarne pola), które są rozmieszczone losowo na planszy. 
- • Wolne (białe) pole, po których możesz się poruszać. 
+Po uruchomieniu pliku `gra.exe` otworzy się menu gry. Masz do wyboru dwa przyciski:
+- **Graj** (zielony przycisk) – rozpocznij grę.
+- **Wyjdź** (czerwony przycisk) – zakończ grę.
 
-3. Wybór miejsc: 
-Na początku gry zostaniesz poproszony o wybranie uczelni – kliknij na wolne pole, aby ustawić punkt startowy. Wybierz dom – kliknij na inne wolne pole, które będzie punktem końcowym. 
+Kliknij **Graj**, aby zacząć.
 
-4. Wyznaczenie drogi: 
-Aby wyznaczyć prawidłowo drogę należy poruszać się w górę, dół, prawo, lewo (poruszanie się na skos nie zadziała). Po wyznaczeniu punktu startowego i końcowego, gracz otrzyma “X” kroków, by dotrzeć do celu. Gracz wyznacza swoją drogę, poprzez zajmowanie wolnych pól, na kolor niebieski. 
+## 2. Plansza gry
 
-5. Sprawdzenie drogi: 
-Gdy ukończysz wyznaczanie drogi, kliknij przycisk “Sprawdź” (lewy górny róg).  
- • Jeśli droga została optymalnie wyznaczona, pojawi się krótka animacja ludzika,  który przejdzie po twojej trasie i zaznaczy ją na zielono. 
- • Jeśli nie udało ci się wyznaczyć poprawnej drogi, ludzik poprawi twoją trasę czerwonym kolorem. 
+Gra rozgrywa się na planszy 20x20, podzielonej na kwadratowe pola:
+- **Punkt startowy** – uczelnia, od której zaczynasz swoją podróż.
+- **Punkt końcowy** – dom, do którego musisz dotrzeć.
+- **Przeszkody** – czarne pola, które utrudniają przejście.
+- **Wolne pola** – białe, po których możesz się poruszać.
 
-6. Uruchom ponownie i wyjdź 
-Jeśli chcesz zagrać jeszcze raz kliknij przycisk “Zagraj ponownie”, co spowoduje wygenerowanie nowej, losowej planszy i umożliwi ci ponowne znalezienie drogi od uczelni do domu. W każdej chwili możesz też kliknąć przycisk “Wyjdź”. 
+## 3. Wybór miejsc
 
-  
+Na początku gry zostaniesz poproszony o wybranie uczelni – kliknij na wolne pole, aby ustawić punkt startowy. Następnie wybierz dom – kliknij na inne wolne pole, które będzie Twoim celem.
 
- 
+## 4. Wyznaczenie drogi
+
+Aby wyznaczyć prawidłową drogę, musisz poruszać się **tylko** w czterech kierunkach: **góra, dół, prawo, lewo** (poruszanie się po skosie nie zadziała).  
+Po ustawieniu uczelni i domu, otrzymasz „X” kroków (dokładna liczba pól obliczonej optymalnej trasy), które możesz wykorzystać, aby dotrzeć do celu.  
+Tworzysz swoją drogę, klikając kolejne wolne pola – przy kliknięciu zmieniają one kolor na niebieski.
+
+## 5. Sprawdzenie drogi
+
+Gdy ukończysz wyznaczanie drogi, kliknij przycisk **Sprawdź** (umieszczony w lewym górnym rogu).  
+- **Jeśli Twoja droga jest optymalna**, pojawi się krótka animacja, w której student przejdzie wyznaczoną trasą, a droga zostanie zaznaczona na zielono.
+- **Jeśli Twoja droga nie jest optymalna**, animacja pokaże, że trasa została poprawiona – droga zostanie oznaczona na czerwono.
+
+## 6. Uruchom ponownie i wyjdź
+
+- Aby zagrać ponownie, kliknij przycisk **Zagraj ponownie** – nowa, losowa plansza zostanie wygenerowana, co pozwoli Ci spróbować znaleźć optymalną drogę jeszcze raz.
+- W każdej chwili możesz też kliknąć przycisk **Wyjdź**, aby zakończyć grę.
+
+---
+
+Powodzenia i miłej zabawy!
