@@ -4,7 +4,7 @@ Wyobraź sobie, że jesteś studentem, który właśnie kończy zajęcia na ucze
 
 ## 1. Ekran startowy
 
-Po uruchomieniu pliku `gra.exe` otworzy się menu gry. Masz do wyboru dwa przyciski:
+Po uruchomieniu pliku `AGwiazdkaGra.exe` otworzy się menu gry. Masz do wyboru dwa przyciski:
 - **Graj** (zielony przycisk) – rozpocznij grę.
 - **Wyjdź** (czerwony przycisk) – zakończ grę.
 
