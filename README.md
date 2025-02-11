@@ -40,6 +40,6 @@ Gdy ukończysz wyznaczanie drogi, kliknij przycisk **Sprawdź** (umieszczony w l
 - W każdej chwili możesz też kliknąć przycisk **Wyjdź**, aby zakończyć grę.
 
 ---
-Link do pobrania gry -> 
+Link do pobrania gry -> https://www.dropbox.com/scl/fi/qpr3jj9a64jaux49rwu0q/AGwiazdkaGra.exe?rlkey=x5lsh5jkq6c6k3b0j6zvlkv2i&st=pleiw2r0&dl=0
 
 Powodzenia i miłej zabawy!
