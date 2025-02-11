@@ -31,7 +31,7 @@ Tworzysz swoją drogę, klikając kolejne wolne pola – przy kliknięciu zmieni
 ## 5. Sprawdzenie drogi
 
 Gdy ukończysz wyznaczanie drogi, kliknij przycisk **Sprawdź** (umieszczony w lewym górnym rogu).  
-- **Jeśli Twoja droga jest optymalna**, pojawi się krótka animacja, w której student przejdzie wyznaczoną trasą, a droga zostanie zaznaczona na zielono.
+- **Jeśli Twoja droga jest zgodna z algorytmem A***, pojawi się krótka animacja, w której student przejdzie wyznaczoną trasą, a droga zostanie zaznaczona na zielono.
 - **Jeśli Twoja droga nie jest optymalna**, animacja pokaże, że trasa została poprawiona – droga zostanie oznaczona na czerwono.
 
 ## 6. Uruchom ponownie i wyjdź
