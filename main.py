@@ -120,7 +120,7 @@ def astar_algorithm(grid, start, end, nodes_dict, console_grid):
                 current_node = current_node.parent
             path.reverse()
             return path
-        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:  # Tylko ruchy w górę, dół, lewo, prawo
             neighbor_pos = (current_node.position[0] + dx, current_node.position[1] + dy)
             if 0 <= neighbor_pos[0] < GRID_SIZE and 0 <= neighbor_pos[1] < GRID_SIZE:
                 if grid[neighbor_pos[0]][neighbor_pos[1]] == 5 or neighbor_pos in closed_set:
@@ -261,7 +261,7 @@ def main():
     show_error_message = False
     message = "Wybierz punkt startowy"
     button_check_rect = button_check.get_rect(topleft=(10, 10))
-    button_restart_rect = button_restart.get_rect(topleft=(button_check_rect.right + 10, 10))
+    button_restart_rect = button_restart.get_rect(topleft=(button_check.get_rect().right + 10, 10))
     button_exit_top_rect = button_exit_game.get_rect(topright=(VIRTUAL_WIDTH - 10, 10))
     selecting_start = True
     selecting_end = False
@@ -345,10 +345,13 @@ def main():
                         else:
                             message = "Nie można wyznaczyć ścieżki!"
                 else:
+                    # Zapobiegamy poruszaniu się na skos - sprawdzamy, czy nowy krok jest sąsiadujący (góra, dół, prawo, lewo)
                     if remaining_steps > 0 and (row, col) not in user_path:
-                        user_path.append((row, col))
-                        remaining_steps -= 1
-
+                        last = user_path[-1]
+                        if (abs(row - last[0]) == 1 and col == last[1]) or (abs(col - last[1]) == 1 and row == last[0]):
+                            user_path.append((row, col))
+                            remaining_steps -= 1
+                        # Jeśli krok nie jest sąsiadujący, kliknięcie jest ignorowane.
         # Automatyczne sprawdzenie ścieżki tylko gdy jest idealna
         if not selecting_start and not selecting_end and remaining_steps == 0 and optimal_path is not None and not path_checked:
             if user_path == optimal_path:
